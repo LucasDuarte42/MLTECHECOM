@@ -415,3 +415,440 @@ kbd { padding: 3px 4px; border: 1px solid var(--line); color: var(--ink-faint); 
   .focus-metrics div, .focus-metrics div + div { padding: 12px 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .focus-metrics div:last-child { border-bottom: 0; }
 }
+
+
+/*
+ * Extensão do Instrument Panel Editorial — estudo de energia.
+ * A seção usa um faceplate azul-grafite para separar medição real de premissas editáveis,
+ * filetes finos, tipografia monoespacial e verde de eficiência apenas em dados medidos.
+ */
+.energy-section {
+  padding: 5.8rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.energy-source-note {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+  font: 700 0.63rem/1 var(--font-mono);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.energy-source-note b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.energy-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(24rem, 0.92fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.energy-hero-panel {
+  position: relative;
+  min-height: 35rem;
+  padding: 2rem;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 1.2rem 3rem rgba(23, 31, 46, 0.13);
+}
+
+.energy-hero-panel::before {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 2.25rem 2.25rem;
+  content: "";
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.energy-hero-panel::after {
+  position: absolute;
+  right: -5rem;
+  bottom: -6rem;
+  width: 18rem;
+  height: 18rem;
+  border: 1px solid rgba(208, 255, 92, 0.38);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1rem rgba(208, 255, 92, 0.04), 0 0 0 3rem rgba(208, 255, 92, 0.025);
+  content: "";
+}
+
+.energy-panel-top,
+.energy-source-links,
+.energy-controls,
+.energy-reading-rule,
+.energy-summary-grid,
+.energy-bar-meta {
+  position: relative;
+  z-index: 1;
+}
+
+.energy-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.energy-panel-top .eyebrow,
+.energy-hero-panel .eyebrow {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.energy-hero-panel .panel-code {
+  color: var(--lime);
+}
+
+.energy-main-reading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 4rem 0 1.3rem;
+}
+
+.energy-main-reading strong {
+  color: var(--lime);
+  font: 700 clamp(3.4rem, 8vw, 6.4rem)/0.88 var(--font-display);
+  letter-spacing: -0.07em;
+}
+
+.energy-main-reading span {
+  max-width: 5.8rem;
+  color: rgba(255, 255, 255, 0.65);
+  font: 600 0.68rem/1.25 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-reading-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--paper);
+  font: 700 0.67rem/1 var(--font-mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.energy-reading-rule span {
+  height: 1px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.energy-hero-panel > p {
+  position: relative;
+  z-index: 1;
+  max-width: 34rem;
+  margin: 2.2rem 0 2rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.energy-controls {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 0.65rem;
+  max-width: 30rem;
+}
+
+.energy-controls label > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: rgba(255, 255, 255, 0.5);
+  font: 700 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.energy-input-wrap {
+  display: flex;
+  align-items: center;
+  min-height: 2.6rem;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out);
+}
+
+.energy-input-wrap:focus-within {
+  border-color: var(--lime);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.energy-input-wrap > span,
+.energy-input-wrap small {
+  color: rgba(255, 255, 255, 0.56);
+  font: 700 0.7rem/1 var(--font-mono);
+}
+
+.energy-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.55rem 0.45rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--paper);
+  font: 700 0.88rem/1 var(--font-mono);
+}
+
+.energy-input-wrap input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.energy-source-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem 1rem;
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.45);
+  font: 700 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-source-links span {
+  width: 100%;
+}
+
+.energy-source-links a {
+  color: var(--paper);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+}
+
+.energy-source-links a:hover {
+  color: var(--lime);
+}
+
+.energy-side-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.energy-summary-panel,
+.energy-comparison-panel {
+  padding: 1.55rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.energy-summary-panel .panel-heading,
+.energy-comparison-panel .panel-heading {
+  margin-bottom: 1.4rem;
+}
+
+.energy-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.energy-summary-grid > div {
+  min-height: 6.4rem;
+  padding: 1rem;
+  background: var(--paper);
+}
+
+.energy-summary-grid span,
+.energy-bar-meta span {
+  display: block;
+  color: var(--muted);
+  font: 700 0.58rem/1.15 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-summary-grid strong {
+  display: block;
+  margin-top: 0.8rem;
+  color: var(--ink);
+  font: 700 1.55rem/1 var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.energy-summary-grid strong small {
+  color: var(--muted);
+  font: 700 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.energy-summary-grid > div:nth-child(2) strong {
+  color: var(--coral);
+}
+
+.energy-disclaimer,
+.energy-footnote {
+  color: var(--muted);
+  font: 500 0.69rem/1.55 var(--font-mono);
+}
+
+.energy-disclaimer {
+  margin: 1rem 0 0;
+}
+
+.energy-comparison-panel {
+  background: var(--paper);
+}
+
+.energy-bar-row + .energy-bar-row {
+  margin-top: 1rem;
+}
+
+.energy-bar-meta {
+  display: grid;
+  grid-template-columns: 6.4rem 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.42rem;
+}
+
+.energy-bar-meta small {
+  color: var(--muted);
+  font: 500 0.62rem/1 var(--font-mono);
+}
+
+.energy-bar-meta b {
+  color: var(--ink);
+  font: 700 0.72rem/1 var(--font-mono);
+}
+
+.energy-bar-track {
+  height: 0.48rem;
+  background: var(--mist);
+}
+
+.energy-bar-fill {
+  height: 100%;
+  background: #a8b2be;
+  transition: width 260ms var(--ease-out);
+}
+
+.energy-bar-fill.gaming {
+  background: var(--coral);
+}
+
+.energy-performance-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.energy-performance-strip > div {
+  min-height: 7rem;
+  padding: 1.1rem;
+  background: var(--paper);
+}
+
+.energy-performance-strip strong {
+  display: block;
+  margin: 0.75rem 0 0.32rem;
+  color: var(--ink);
+  font: 700 2.15rem/0.9 var(--font-display);
+  letter-spacing: -0.04em;
+}
+
+.energy-performance-strip strong small {
+  color: var(--muted);
+  font: 700 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.energy-performance-strip > div:nth-child(3) strong,
+.energy-performance-strip > div:nth-child(4) strong {
+  color: var(--lime-ink);
+}
+
+.energy-performance-strip span:last-child {
+  color: var(--muted);
+  font: 500 0.62rem/1.2 var(--font-mono);
+}
+
+.energy-footnote {
+  margin: 0.9rem 0 0;
+}
+
+@media (max-width: 980px) {
+  .energy-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-hero-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .energy-section {
+    padding-top: 4rem;
+  }
+
+  .energy-source-note {
+    display: none;
+  }
+
+  .energy-hero-panel,
+  .energy-summary-panel,
+  .energy-comparison-panel {
+    padding: 1.1rem;
+  }
+
+  .energy-main-reading {
+    margin: 3.2rem 0 1.2rem;
+  }
+
+  .energy-controls,
+  .energy-summary-grid,
+  .energy-performance-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .energy-performance-strip > div {
+    min-height: 6.8rem;
+    padding: 0.8rem;
+  }
+
+  .energy-performance-strip strong {
+    font-size: 1.7rem;
+  }
+
+  .energy-bar-meta {
+    grid-template-columns: 5.6rem 1fr auto;
+  }
+
+  .energy-bar-meta small {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .energy-controls,
+  .energy-summary-grid,
+  .energy-performance-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-performance-strip > div {
+    min-height: auto;
+  }
+}

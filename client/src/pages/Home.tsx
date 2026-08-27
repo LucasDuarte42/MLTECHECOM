@@ -40,6 +40,18 @@ const HERO_IMAGE = "/manus-storage/gpu-metrics-hero_8d358e27.png";
 const CARD_IMAGE = "/manus-storage/gpu-metrics-card_cb380fef.png";
 const THERMAL_IMAGE = "/manus-storage/gpu-metrics-thermal_e21b9b8a.png";
 
+const RTX3060_REFERENCE = {
+  name: "GeForce RTX 3060 12 GB",
+  tdp: 170,
+  gamingWatts: 181,
+  idleWatts: 13,
+  multiMonitorWatts: 16,
+  videoPlaybackWatts: 17,
+  maximumWatts: 179,
+  fps1080p: 117,
+  fps1440p: 86,
+};
+
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -48,6 +60,13 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 
 const numberFormatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 1,
+});
+
+const preciseCurrencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 function normalize(value: string) {
@@ -181,6 +200,8 @@ export default function Home() {
   const [importStatus, setImportStatus] = useState("");
   const [showMethodology, setShowMethodology] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [energyTariff, setEnergyTariff] = useState("0,80823");
+  const [energyHours, setEnergyHours] = useState("4");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -215,6 +236,17 @@ export default function Home() {
   const selectedGpu = mergedData.find((gpu) => gpu.id === selectedId) ?? mergedData[0];
   const comparableCount = readyData.length;
   const completedInputCount = mergedData.filter((gpu) => gpu.price !== null || gpu.fps !== null).length;
+  const tariffValue = parseNumber(energyTariff) ?? 0.80823;
+  const hoursValue = parseNumber(energyHours) ?? 4;
+  const rtx3060 = mergedData.find((gpu) => gpu.name === RTX3060_REFERENCE.name);
+  const rtx3060CostPerHour = (RTX3060_REFERENCE.gamingWatts / 1000) * tariffValue;
+  const rtx3060MonthlyKwh = (RTX3060_REFERENCE.gamingWatts / 1000) * hoursValue * 30;
+  const rtx3060MonthlyCost = rtx3060MonthlyKwh * tariffValue;
+  const rtx3060AnnualCost = (RTX3060_REFERENCE.gamingWatts / 1000) * hoursValue * 365 * tariffValue;
+
+  function formatPreciseCurrency(value: number) {
+    return preciseCurrencyFormatter.format(value);
+  }
 
   function updateMetric(name: string, field: MetricField, rawValue: string) {
     const value = rawValue.trim() === "" ? null : parseNumber(rawValue);
@@ -283,8 +315,9 @@ export default function Home() {
         <button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Fechar navegação"><X size={20} /></button>
         <nav className="primary-nav" aria-label="Navegação principal">
           <a className="nav-item active" href="#overview" onClick={() => setMobileNav(false)}><BarChart3 size={17} /><span>Visão geral</span><b>01</b></a>
-          <a className="nav-item" href="#data-table" onClick={() => setMobileNav(false)}><Database size={17} /><span>Base da planilha</span><b>02</b></a>
-          <a className="nav-item" href="#methodology" onClick={() => setMobileNav(false)}><CircleHelp size={17} /><span>Como ler</span><b>03</b></a>
+          <a className="nav-item" href="#energy-study" onClick={() => setMobileNav(false)}><Zap size={17} /><span>Energia em SP</span><b>02</b></a>
+          <a className="nav-item" href="#data-table" onClick={() => setMobileNav(false)}><Database size={17} /><span>Base da planilha</span><b>03</b></a>
+          <a className="nav-item" href="#methodology" onClick={() => setMobileNav(false)}><CircleHelp size={17} /><span>Como ler</span><b>04</b></a>
         </nav>
         <div className="rail-rule" />
         <div className="rail-note"><span className="eyebrow">LEGENDA</span><p>O que a placa entrega por watt importa tanto quanto o pico de FPS.</p></div>
@@ -331,7 +364,7 @@ export default function Home() {
           </section>
 
           <section className="analysis-section" aria-labelledby="analysis-title">
-            <div className="section-header"><div><span className="section-index">02 / 04</span><h2 id="analysis-title">Mapa de decisão</h2></div><div className="section-header-note"><span>Uma leitura em duas camadas</span><b>qualitativa + quantitativa</b></div></div>
+            <div className="section-header"><div><span className="section-index">02 / 05</span><h2 id="analysis-title">Mapa de decisão</h2></div><div className="section-header-note"><span>Uma leitura em duas camadas</span><b>qualitativa + quantitativa</b></div></div>
             <div className="tab-row" role="tablist" aria-label="Visualização da análise">
               <button className={activeTab === "overview" ? "tab active" : "tab"} onClick={() => setActiveTab("overview")} role="tab" aria-selected={activeTab === "overview"}><Gauge size={15} /> Painel de eficiência</button>
               <button className={activeTab === "table" ? "tab active" : "tab"} onClick={() => { setActiveTab("table"); document.getElementById("data-table")?.scrollIntoView({ behavior: "smooth" }); }} role="tab" aria-selected={activeTab === "table"}><FileSpreadsheet size={15} /> Tabela de entrada</button>
@@ -352,8 +385,27 @@ export default function Home() {
             </div>
           </section>
 
+          <section className="energy-section" id="energy-study" aria-labelledby="energy-title">
+            <div className="section-header"><div><span className="section-index">03 / 05</span><h2 id="energy-title">Energia em São Paulo</h2><p className="section-lede">Uma RTX 3060 não custa apenas na compra: o consumo contínuo também entra na conta.</p></div><div className="energy-source-note"><span className="live-dot" /> TARIFA EDITÁVEL <b>R$ / kWh</b></div></div>
+            <div className="energy-layout">
+              <article className="energy-hero-panel">
+                <div className="energy-panel-top"><span className="eyebrow">RTX 3060 12 GB / BANCADA</span><span className="panel-code">SP / 08.26</span></div>
+                <div className="energy-main-reading"><strong>{formatPreciseCurrency(rtx3060CostPerHour)}</strong><span>por hora de gaming</span></div>
+                <div className="energy-reading-rule"><span /> <b>{RTX3060_REFERENCE.gamingWatts} W medidos</b> <span /></div>
+                <p>Estimativa baseada no consumo Gaming da EVGA RTX 3060 XC medido pela TechPowerUp e na tarifa residencial B1 de São Paulo, com a bandeira amarela de agosto de 2026.</p>
+                <div className="energy-controls"><label><span>Tarifa aplicada</span><div className="energy-input-wrap"><span>R$</span><input inputMode="decimal" aria-label="Tarifa de energia em reais por quilowatt-hora" value={energyTariff} onChange={(event) => setEnergyTariff(event.target.value)} /><small>/ kWh</small></div></label><label><span>Horas de gaming / dia</span><div className="energy-input-wrap"><input inputMode="decimal" aria-label="Horas de gaming por dia" value={energyHours} onChange={(event) => setEnergyHours(event.target.value)} /><small>h</small></div></label></div>
+                <div className="energy-source-links"><span>FONTE / MÉTODO</span><a href="https://www.techpowerup.com/gpu-specs/geforce-rtx-3060-12-gb.c3682" target="_blank" rel="noreferrer">TechPowerUp specs ↗</a><a href="https://www.techpowerup.com/review/evga-geforce-rtx-3060-xc/36.html" target="_blank" rel="noreferrer">Power review ↗</a><a href="https://www.enel.com.br/pt-saopaulo/Para_Voce/tarifa-energia-eletrica.html" target="_blank" rel="noreferrer">Enel SP ↗</a></div>
+              </article>
+              <div className="energy-side-stack">
+                <article className="energy-summary-panel"><div className="panel-heading"><div><span className="eyebrow">CENÁRIO CONFIGURADO</span><h3>{numberFormatter.format(hoursValue)} h / dia</h3></div><span className="panel-code">C / 01</span></div><div className="energy-summary-grid"><div><span>consumo mensal</span><strong>{numberFormatter.format(rtx3060MonthlyKwh)} <small>kWh</small></strong></div><div><span>custo mensal</span><strong>{formatPreciseCurrency(rtx3060MonthlyCost)}</strong></div><div><span>custo anual</span><strong>{formatPreciseCurrency(rtx3060AnnualCost)}</strong></div><div><span>tarifa calculada</span><strong>{formatPreciseCurrency(tariffValue)} <small>/ kWh</small></strong></div></div><p className="energy-disclaimer">Antes de impostos, CIP e eventuais ajustes de faturamento. Altere a tarifa para refletir sua conta real.</p></article>
+                <article className="energy-comparison-panel"><div className="panel-heading"><div><span className="eyebrow">ESTADOS DE CONSUMO</span><h3>A mesma placa, ritmos diferentes</h3></div><span className="panel-code">C / 02</span></div>{[{ label: "Idle", watts: RTX3060_REFERENCE.idleWatts, note: "desktop em repouso" }, { label: "Multi-monitor", watts: RTX3060_REFERENCE.multiMonitorWatts, note: "duas ou mais telas" }, { label: "Video playback", watts: RTX3060_REFERENCE.videoPlaybackWatts, note: "reprodução de vídeo" }, { label: "Gaming", watts: RTX3060_REFERENCE.gamingWatts, note: "carga de jogos" }, { label: "Máximo", watts: RTX3060_REFERENCE.maximumWatts, note: "pico do review" }].map((state) => <div className="energy-bar-row" key={state.label}><div className="energy-bar-meta"><span>{state.label}</span><small>{state.note}</small><b>{state.watts} W</b></div><div className="energy-bar-track"><div className={`energy-bar-fill ${state.label === "Gaming" ? "gaming" : ""}`} style={{ width: `${Math.min((state.watts / 181) * 100, 100)}%` }} /></div></div>)}</article></div>
+            </div>
+            <div className="energy-performance-strip"><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{RTX3060_REFERENCE.fps1080p} <small>FPS</small></strong><span>média em 1920×1080</span></div><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{RTX3060_REFERENCE.fps1440p} <small>FPS</small></strong><span>média em 2560×1440</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{numberFormatter.format(RTX3060_REFERENCE.fps1080p / RTX3060_REFERENCE.gamingWatts)} <small>FPS/W</small></strong><span>1080p ÷ 181 W Gaming</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{numberFormatter.format(RTX3060_REFERENCE.fps1440p / RTX3060_REFERENCE.gamingWatts)} <small>FPS/W</small></strong><span>1440p ÷ 181 W Gaming</span></div></div>
+            <p className="energy-footnote">Referência: EVGA RTX 3060 XC, review publicado em 25/02/2021. Os 117 FPS e 86 FPS são médias do conjunto de jogos do review; não representam todos os jogos atuais. A tarifa inicial combina Enel B1 (R$ 0,78938/kWh) com bandeira amarela ANEEL de agosto de 2026 (R$ 0,01885/kWh).</p>
+          </section>
+
           <section className="data-section" id="data-table" aria-labelledby="data-title">
-            <div className="section-header data-header"><div><span className="section-index">03 / 04</span><h2 id="data-title">Base comparável</h2><p className="section-lede">Edite os campos que faltam. O cálculo acontece no mesmo instante, sem sair da tabela.</p></div><div className="input-status"><span className="status-orb" /> {completedInputCount} campos com dados locais</div></div>
+            <div className="section-header data-header"><div><span className="section-index">04 / 05</span><h2 id="data-title">Base comparável</h2><p className="section-lede">Edite os campos que faltam. O cálculo acontece no mesmo instante, sem sair da tabela.</p></div><div className="input-status"><span className="status-orb" /> {completedInputCount} campos com dados locais</div></div>
             <div className="data-toolbar">
               <label className="search-box"><Search size={17} /><input type="search" placeholder="Buscar placa..." value={query} onChange={(event) => setQuery(event.target.value)} /><kbd>⌘ K</kbd></label>
               <div className="select-wrap"><Filter size={15} /><select value={targetFilter} onChange={(event) => setTargetFilter(event.target.value)}><option value="Todos">Todas as resoluções</option>{targets.map((target) => <option value={target} key={target}>{target}</option>)}</select><ChevronDown size={14} /></div>
@@ -386,7 +438,7 @@ export default function Home() {
 
           <section className="focus-section" aria-labelledby="focus-title">
             <div className="focus-image"><img src={CARD_IMAGE} alt="Close-up de fans de uma placa de vídeo" /><span className="image-label">FIG. 02 / COOLING</span></div>
-            <div className="focus-copy"><span className="section-index">04 / 04</span><span className="eyebrow">PLACA EM FOCO</span><h2 id="focus-title">{selectedGpu?.name ?? "Selecione uma placa"}</h2><p>Leitura de bancada para um modelo específico. Clique em qualquer linha da base para trocar o foco.</p><div className="focus-metrics"><div><span>faixa indicada</span><strong>{selectedGpu?.tier ?? "—"}</strong></div><div><span>consumo de projeto</span><strong>{selectedGpu ? `${selectedGpu.tdp} W` : "—"}</strong></div><div><span>tecnologia</span><strong>{selectedGpu?.technology ?? "—"}</strong></div></div><a href="#data-table" className="focus-link">Completar dados desta placa <ArrowUpRight size={15} /></a></div>
+            <div className="focus-copy"><span className="section-index">05 / 05</span><span className="eyebrow">PLACA EM FOCO</span><h2 id="focus-title">{selectedGpu?.name ?? "Selecione uma placa"}</h2><p>Leitura de bancada para um modelo específico. Clique em qualquer linha da base para trocar o foco.</p><div className="focus-metrics"><div><span>faixa indicada</span><strong>{selectedGpu?.tier ?? "—"}</strong></div><div><span>consumo de projeto</span><strong>{selectedGpu ? `${selectedGpu.tdp} W` : "—"}</strong></div><div><span>tecnologia</span><strong>{selectedGpu?.technology ?? "—"}</strong></div></div><a href="#data-table" className="focus-link">Completar dados desta placa <ArrowUpRight size={15} /></a></div>
           </section>
 
           <section className="methodology-section" id="methodology" aria-labelledby="methodology-title">
