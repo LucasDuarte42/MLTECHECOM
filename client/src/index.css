@@ -985,3 +985,155 @@ kbd { padding: 3px 4px; border: 1px solid var(--line); color: var(--ink-faint); 
     margin-top: 0.65rem;
   }
 }
+
+
+/* Instrument Panel Editorial — comparativo de eficiência por geração RTX. */
+.series-efficiency-panel {
+  grid-column: 1 / -1;
+  padding: 1.55rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.series-efficiency-panel .panel-intro {
+  max-width: 48rem;
+}
+
+.series-chart {
+  position: relative;
+  margin-top: 1.6rem;
+  padding: 0 0.6rem 0.4rem 4.2rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background-image: linear-gradient(90deg, transparent 0, transparent calc(25% - 1px), var(--line-soft) 25%, transparent calc(25% + 1px), transparent calc(50% - 1px), var(--line-soft) 50%, transparent calc(50% + 1px), transparent calc(75% - 1px), var(--line-soft) 75%, transparent calc(75% + 1px));
+}
+
+.series-chart-scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  padding: 0.72rem 0 0.6rem;
+  color: var(--muted);
+  font: 700 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.series-chart-scale span:last-child {
+  text-align: right;
+}
+
+.series-chart-zone {
+  display: grid;
+  gap: 1.05rem;
+  padding: 0.7rem 0 1.1rem;
+}
+
+.series-chart-row {
+  display: grid;
+  grid-template-columns: 8.6rem 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.series-chart-label strong {
+  display: block;
+  color: var(--ink);
+  font: 700 1.05rem/1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.series-chart-label small {
+  display: block;
+  margin-top: 0.32rem;
+  color: var(--muted);
+  font: 500 0.58rem/1.2 var(--font-mono);
+}
+
+.series-chart-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2.2rem;
+  background: rgba(31, 42, 57, 0.06);
+}
+
+.series-chart-fill {
+  height: 100%;
+  min-width: 0;
+  background: repeating-linear-gradient(135deg, #c7ced7 0, #c7ced7 5px, #b9c1cb 5px, #b9c1cb 6px);
+  transition: width 260ms var(--ease-out);
+}
+
+.series-chart-fill.known {
+  background: var(--lime);
+}
+
+.series-chart-value {
+  position: absolute;
+  left: 0.7rem;
+  color: var(--ink);
+  font: 700 0.72rem/1 var(--font-mono);
+}
+
+.series-chart-value.pending {
+  left: 0.7rem;
+  color: var(--muted);
+}
+
+.series-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.2rem;
+  margin-top: 0.9rem;
+  color: var(--muted);
+  font: 500 0.61rem/1 var(--font-mono);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.series-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.series-chart-legend .empty-dot {
+  display: inline-block;
+  width: 0.48rem;
+  height: 0.48rem;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+
+@media (max-width: 680px) {
+  .series-efficiency-panel {
+    padding: 1.1rem;
+  }
+
+  .series-chart {
+    padding-left: 0;
+    background-image: none;
+  }
+
+  .series-chart-scale {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .series-chart-scale span:nth-child(4) {
+    display: none;
+  }
+
+  .series-chart-scale span:last-child {
+    grid-column: 4;
+  }
+
+  .series-chart-row {
+    grid-template-columns: 7.1rem 1fr;
+    gap: 0.65rem;
+  }
+
+  .series-chart-label strong {
+    font-size: 0.92rem;
+  }
+}

@@ -80,6 +80,28 @@ function getEnergyReference(gpu: GPU | undefined): EnergyReference {
   };
 }
 
+function rtxModelNumber(name: string) {
+  return Number(name.match(/RTX\s(\d{4})/)?.[1] ?? 9999);
+}
+
+function rtxVariantRank(name: string) {
+  if (name.includes("Ti SUPER")) return 3;
+  if (name.includes("SUPER")) return 2;
+  if (name.includes("Ti")) return 1;
+  return 0;
+}
+
+function sortRtxModels(a: GPU, b: GPU) {
+  return rtxModelNumber(a.name) - rtxModelNumber(b.name)
+    || rtxVariantRank(a.name) - rtxVariantRank(b.name)
+    || a.name.localeCompare(b.name);
+}
+
+function rtxSeries(name: string) {
+  const generation = name.match(/RTX\s([345])\d{2}/)?.[1];
+  return generation ? `RTX ${generation}0` : "RTX";
+}
+
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -132,6 +154,34 @@ function costPerFps(gpu: GPU) {
 
 function getInputValue(value: number | null) {
   return value === null ? "" : String(value);
+}
+
+function SeriesEfficiencyChart({ data }: { data: GPU[] }) {
+  const series = ["RTX 30", "RTX 40", "RTX 50"].map((label) => {
+    const rows = data.filter((gpu) => rtxSeries(gpu.name) === label && gpu.fps !== null && gpu.fps > 0);
+    const measuredValues = rows.map((gpu) => gpu.fps as number / gpu.tdp);
+    const includes3060Reference = label === "RTX 30" && !rows.some((gpu) => gpu.name === RTX3060_REFERENCE.name);
+    const values = includes3060Reference ? [...measuredValues, RTX3060_REFERENCE.fps1080p! / RTX3060_REFERENCE.gamingWatts] : measuredValues;
+    return {
+      label,
+      value: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null,
+      count: values.length,
+      note: includes3060Reference ? "referência 3060 / 1080p" : values.length ? `${values.length} benchmark${values.length > 1 ? "s" : ""} informado${values.length > 1 ? "s" : ""}` : "aguardando FPS",
+    };
+  });
+  const maxValue = Math.max(...series.map((item) => item.value ?? 0), 0.7);
+
+  return (
+    <article className="series-efficiency-panel">
+      <div className="panel-heading"><div><span className="eyebrow">COMPARATIVO DE EFICIÊNCIA</span><h3>FPS por Watt / série</h3></div><span className="panel-code">A / 03</span></div>
+      <p className="panel-intro">Média dos FPS/W disponíveis por geração. A RTX 30 começa com a referência medida da RTX 3060; as outras séries entram quando um FPS é informado na tabela.</p>
+      <div className="series-chart" role="img" aria-label="Comparativo de FPS por Watt entre as séries RTX 30, 40 e 50">
+        <div className="series-chart-scale"><span>0,0</span><span>0,2</span><span>0,4</span><span>0,6</span><span>FPS/W</span></div>
+        <div className="series-chart-zone">{series.map((item) => <div className="series-chart-row" key={item.label}><div className="series-chart-label"><strong>{item.label}</strong><small>{item.note}</small></div><div className="series-chart-track"><div className={`series-chart-fill ${item.label === "RTX 30" ? "known" : ""}`} style={{ width: item.value === null ? "0%" : `${Math.max((item.value / maxValue) * 100, 3)}%` }} /><span className={item.value === null ? "series-chart-value pending" : "series-chart-value"}>{item.value === null ? "—" : numberFormatter.format(item.value)}</span></div></div>)}</div>
+      </div>
+      <div className="series-chart-legend"><span><i className="dot lime-dot" /> valor com referência</span><span><i className="dot empty-dot" /> sem FPS cadastrado</span><span>fórmula: FPS ÷ TDP</span></div>
+    </article>
+  );
 }
 
 function TargetDistribution({ data }: { data: GPU[] }) {
@@ -267,7 +317,7 @@ export default function Home() {
   const completedInputCount = mergedData.filter((gpu) => gpu.price !== null || gpu.fps !== null).length;
   const tariffValue = parseNumber(energyTariff) ?? 0.80823;
   const hoursValue = parseNumber(energyHours) ?? 4;
-  const rtxModels = useMemo(() => mergedData.filter((gpu) => /^GeForce RTX (30|40|50)/.test(gpu.name)), [mergedData]);
+  const rtxModels = useMemo(() => mergedData.filter((gpu) => /^GeForce RTX (30|40|50)/.test(gpu.name)).sort(sortRtxModels), [mergedData]);
   const energyGpu = mergedData.find((gpu) => gpu.name === energyGpuName) ?? mergedData.find((gpu) => gpu.name === RTX3060_REFERENCE.name) ?? mergedData[0];
   const energyReference = getEnergyReference(energyGpu);
   const energyStates = energyReference.measured
@@ -423,6 +473,7 @@ export default function Home() {
                 <TargetDistribution data={mergedData} />
                 <div className="thermal-thumb"><img src={THERMAL_IMAGE} alt="Mapa térmico abstrato em uma folha técnica" /><div><span className="eyebrow">NOTA DE CAMPO</span><p>O TDP é o recurso. O FPS é a entrega. O custo é a decisão.</p></div></div>
               </article>
+              <SeriesEfficiencyChart data={mergedData} />
             </div>
           </section>
 
@@ -431,7 +482,7 @@ export default function Home() {
             <div className="energy-layout">
               <article className="energy-hero-panel">
                 <div className="energy-panel-top"><div><span className="eyebrow">ESTUDO DE ENERGIA / PLACA</span><strong className="energy-top-title">Escolha a GPU</strong></div><span className="panel-code">SP / 08.26</span></div>
-                <div className="energy-selector-block"><label className="energy-gpu-select"><span>PLACA DE VÍDEO</span><div className="energy-select-wrap"><select value={energyGpuName} onChange={(event) => setEnergyGpuName(event.target.value)} aria-label="Escolher placa GeForce RTX para análise de energia">{rtxModels.map((gpu) => <option key={gpu.name} value={gpu.name}>{gpu.name.replace("GeForce ", "")}</option>)}</select><ChevronDown size={15} /></div></label><small>26 modelos GeForce RTX / séries 30 · 40 · 50</small></div>
+                <div className="energy-selector-block"><label className="energy-gpu-select"><span>PLACA DE VÍDEO</span><div className="energy-select-wrap"><select value={energyGpuName} onChange={(event) => setEnergyGpuName(event.target.value)} aria-label="Escolher placa GeForce RTX para análise de energia">{["RTX 30", "RTX 40", "RTX 50"].map((series) => <optgroup key={series} label={series}>{rtxModels.filter((gpu) => rtxSeries(gpu.name) === series).map((gpu) => <option key={gpu.name} value={gpu.name}>{gpu.name.replace("GeForce ", "")}</option>)}</optgroup>)}</select><ChevronDown size={15} /></div></label><small>26 modelos GeForce RTX / séries 30 · 40 · 50</small></div>
                 <div className="energy-main-reading"><strong>{formatPreciseCurrency(energyCostPerHour)}</strong><span>{energyReference.measured ? "por hora de gaming medida" : "por hora no TDP de referência"}</span></div>
                 <div className="energy-reading-rule"><span /> <b>{energyReference.gamingWatts} W {energyReference.measured ? "medidos" : "referência"}</b> <span /></div>
                 <p>{energyReference.measured ? "Estimativa baseada no consumo Gaming da EVGA RTX 3060 XC medido pela TechPowerUp e na tarifa residencial B1 de São Paulo, com a bandeira amarela de agosto de 2026." : `Para ${energyReference.name}, o painel usa o TDP de ${energyReference.tdp} W como referência até que uma medição de consumo Gaming seja cadastrada.`}</p>
