@@ -36,9 +36,9 @@ type SortKey = "efficiency" | "cost" | "tdp" | "name";
 type Overrides = Record<string, { price?: number | null; fps?: number | null }>;
 
 const STORAGE_KEY = "gpu-metrics-inputs-v1";
-const HERO_IMAGE = "/manus-storage/gpu-metrics-hero_8d358e27.png";
-const CARD_IMAGE = "/manus-storage/gpu-metrics-card_cb380fef.png";
-const THERMAL_IMAGE = "/manus-storage/gpu-metrics-thermal_e21b9b8a.png";
+const HERO_IMAGE = "/assets/gpu-metrics-hero.png";
+const CARD_IMAGE = "/assets/gpu-metrics-card.png";
+const THERMAL_IMAGE = "/assets/gpu-metrics-thermal.png";
 
 type EnergyReference = {
   name: string;
@@ -400,7 +400,7 @@ export default function Home() {
     <div className="app-shell">
       <aside className={`side-rail ${mobileNav ? "is-open" : ""}`}>
         <div className="brand-lockup">
-          <div className="brand-mark"><img src="/manus-storage/gpu-metrics-mark-transparent_67773144.png" alt="" /></div>
+          <div className="brand-mark"><img src="/assets/gpu-metrics-mark-transparent.png" alt="" /></div>
           <div><span className="brand-name">GPU</span><span className="brand-name brand-name-accent">METRICS</span><span className="brand-subtitle">DECISION LAB / 01</span></div>
         </div>
         <button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Fechar navegação"><X size={20} /></button>
@@ -418,7 +418,7 @@ export default function Home() {
       <main className="main-canvas" id="overview">
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMobileNav(true)} aria-label="Abrir navegação"><Menu size={21} /></button>
-          <div className="topbar-brand"><span className="topbar-brand-mark"><img src="/manus-storage/gpu-metrics-mark-transparent_67773144.png" alt="" /></span><span className="topbar-brand-wordmark">GPU <b>METRICS</b></span><span className="topbar-brand-slash">/</span><span className="topbar-brand-note">FIELD NOTES 01</span></div>
+          <div className="topbar-brand"><span className="topbar-brand-mark"><img src="/assets/gpu-metrics-mark-transparent.png" alt="" /></span><span className="topbar-brand-wordmark">GPU <b>METRICS</b></span><span className="topbar-brand-slash">/</span><span className="topbar-brand-note">FIELD NOTES 01</span></div>
           <div className="topbar-context"><span className="topbar-dot" /> <span>BENCHMARK DE VALOR</span><i /> <span>PLANILHA LOCAL</span></div>
           <div className="topbar-actions">
             <button className="ghost-action" onClick={downloadTemplate}><Download size={15} /> <span>Modelo CSV</span></button>
@@ -430,7 +430,7 @@ export default function Home() {
         <div className="content-wrap">
           <section className="hero-section" aria-labelledby="page-title">
             <div className="hero-copy">
-              <div className="hero-brandplate"><span className="hero-brandplate-mark"><img src="/manus-storage/gpu-metrics-mark-transparent_67773144.png" alt="" /></span><div><span className="hero-brandplate-title">GPU METRICS</span><span className="hero-brandplate-subtitle">INSTRUMENTO DE EFICIÊNCIA / 001</span></div></div>
+              <div className="hero-brandplate"><span className="hero-brandplate-mark"><img src="/assets/gpu-metrics-mark-transparent.png" alt="" /></span><div><span className="hero-brandplate-title">GPU METRICS</span><span className="hero-brandplate-subtitle">INSTRUMENTO DE EFICIÊNCIA / 001</span></div></div>
               <span className="eyebrow">GPU METRICS <b>/</b> DECISÃO DE COMPRA</span>
               <h1 id="page-title">Mais quadros<br /><em>não significam</em><br />mais valor.</h1>
               <p className="hero-description">Cruze FPS médio, consumo e preço para enxergar a placa que entrega mais jogo por cada watt — e por cada real.</p>
@@ -541,7 +541,7 @@ export default function Home() {
           </section>
         </div>
 
-        <footer className="site-footer"><div className="footer-brand"><div className="brand-mark small"><img src="/manus-storage/gpu-metrics-mark-transparent_67773144.png" alt="" /></div><span>GPU METRICS</span></div><span>Instrumento editorial para decisões de hardware.</span><span className="footer-right">BASE LOCAL / 2026 <span className="footer-rule" /> sem telemetria</span></footer>
+        <footer className="site-footer"><div className="footer-brand"><div className="brand-mark small"><img src="/assets/gpu-metrics-mark-transparent.png" alt="" /></div><span>GPU METRICS</span></div><span>Instrumento editorial para decisões de hardware.</span><span className="footer-right">BASE LOCAL / 2026 <span className="footer-rule" /> sem telemetria</span></footer>
       </main>
     </div>
   );
