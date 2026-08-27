@@ -852,3 +852,136 @@ kbd { padding: 3px 4px; border: 1px solid var(--line); color: var(--ink-faint); 
     min-height: auto;
   }
 }
+
+
+/* Instrument Panel Editorial — seletor de GPU no faceplate de energia. */
+.energy-gpu-select {
+  display: block;
+  min-width: 15rem;
+}
+
+.energy-gpu-select .eyebrow {
+  display: block;
+  margin-bottom: 0.48rem;
+}
+
+.energy-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 18rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.42);
+}
+
+.energy-select-wrap select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 1.4rem 0.45rem 0;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--paper);
+  font: 700 0.82rem/1 var(--font-mono);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.energy-select-wrap select option {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.energy-select-wrap svg {
+  position: absolute;
+  right: 0;
+  color: var(--lime);
+  pointer-events: none;
+}
+
+@media (max-width: 680px) {
+  .energy-panel-top {
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .energy-gpu-select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .energy-select-wrap {
+    max-width: none;
+  }
+
+  .energy-select-wrap select {
+    font-size: 0.72rem;
+  }
+}
+
+
+/* Instrument Panel Editorial — campo visível de seleção de placa. */
+.energy-top-title {
+  display: block;
+  margin-top: 0.32rem;
+  color: var(--paper);
+  font: 700 1.15rem/1 var(--font-display);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.energy-selector-block {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid rgba(208, 255, 92, 0.46);
+  background: rgba(208, 255, 92, 0.08);
+}
+
+.energy-selector-block .energy-gpu-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.energy-selector-block .energy-gpu-select > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--lime);
+  font: 700 0.59rem/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.energy-selector-block .energy-select-wrap {
+  max-width: none;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+}
+
+.energy-selector-block .energy-select-wrap select {
+  min-height: 2.2rem;
+  font-size: 0.86rem;
+}
+
+.energy-selector-block > small {
+  max-width: 12rem;
+  color: rgba(255, 255, 255, 0.58);
+  font: 500 0.58rem/1.35 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 680px) {
+  .energy-selector-block {
+    display: block;
+  }
+
+  .energy-selector-block > small {
+    display: block;
+    max-width: none;
+    margin-top: 0.65rem;
+  }
+}
