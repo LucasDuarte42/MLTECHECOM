@@ -40,7 +40,20 @@ const HERO_IMAGE = "/manus-storage/gpu-metrics-hero_8d358e27.png";
 const CARD_IMAGE = "/manus-storage/gpu-metrics-card_cb380fef.png";
 const THERMAL_IMAGE = "/manus-storage/gpu-metrics-thermal_e21b9b8a.png";
 
-const RTX3060_REFERENCE = {
+type EnergyReference = {
+  name: string;
+  tdp: number;
+  gamingWatts: number;
+  idleWatts: number;
+  multiMonitorWatts: number;
+  videoPlaybackWatts: number;
+  maximumWatts: number;
+  fps1080p?: number;
+  fps1440p?: number;
+  measured: boolean;
+};
+
+const RTX3060_REFERENCE: EnergyReference = {
   name: "GeForce RTX 3060 12 GB",
   tdp: 170,
   gamingWatts: 181,
@@ -50,7 +63,22 @@ const RTX3060_REFERENCE = {
   maximumWatts: 179,
   fps1080p: 117,
   fps1440p: 86,
+  measured: true,
 };
+
+function getEnergyReference(gpu: GPU | undefined): EnergyReference {
+  if (!gpu || gpu.name === RTX3060_REFERENCE.name) return RTX3060_REFERENCE;
+  return {
+    name: gpu.name,
+    tdp: gpu.tdp,
+    gamingWatts: gpu.tdp,
+    idleWatts: gpu.tdp,
+    multiMonitorWatts: gpu.tdp,
+    videoPlaybackWatts: gpu.tdp,
+    maximumWatts: gpu.tdp,
+    measured: false,
+  };
+}
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -202,6 +230,7 @@ export default function Home() {
   const [mobileNav, setMobileNav] = useState(false);
   const [energyTariff, setEnergyTariff] = useState("0,80823");
   const [energyHours, setEnergyHours] = useState("4");
+  const [energyGpuName, setEnergyGpuName] = useState(RTX3060_REFERENCE.name);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -238,11 +267,23 @@ export default function Home() {
   const completedInputCount = mergedData.filter((gpu) => gpu.price !== null || gpu.fps !== null).length;
   const tariffValue = parseNumber(energyTariff) ?? 0.80823;
   const hoursValue = parseNumber(energyHours) ?? 4;
-  const rtx3060 = mergedData.find((gpu) => gpu.name === RTX3060_REFERENCE.name);
-  const rtx3060CostPerHour = (RTX3060_REFERENCE.gamingWatts / 1000) * tariffValue;
-  const rtx3060MonthlyKwh = (RTX3060_REFERENCE.gamingWatts / 1000) * hoursValue * 30;
-  const rtx3060MonthlyCost = rtx3060MonthlyKwh * tariffValue;
-  const rtx3060AnnualCost = (RTX3060_REFERENCE.gamingWatts / 1000) * hoursValue * 365 * tariffValue;
+  const rtxModels = useMemo(() => mergedData.filter((gpu) => /^GeForce RTX (30|40|50)/.test(gpu.name)), [mergedData]);
+  const energyGpu = mergedData.find((gpu) => gpu.name === energyGpuName) ?? mergedData.find((gpu) => gpu.name === RTX3060_REFERENCE.name) ?? mergedData[0];
+  const energyReference = getEnergyReference(energyGpu);
+  const energyStates = energyReference.measured
+    ? [
+        { label: "Idle", watts: energyReference.idleWatts, note: "desktop em repouso" },
+        { label: "Multi-monitor", watts: energyReference.multiMonitorWatts, note: "duas ou mais telas" },
+        { label: "Video playback", watts: energyReference.videoPlaybackWatts, note: "reprodução de vídeo" },
+        { label: "Gaming", watts: energyReference.gamingWatts, note: "carga de jogos" },
+        { label: "Máximo", watts: energyReference.maximumWatts, note: "pico do review" },
+      ]
+    : [{ label: "TDP de projeto", watts: energyReference.tdp, note: "referência da planilha" }];
+  const energyMaxWatts = Math.max(...energyStates.map((state) => state.watts), 1);
+  const energyCostPerHour = (energyReference.gamingWatts / 1000) * tariffValue;
+  const energyMonthlyKwh = (energyReference.gamingWatts / 1000) * hoursValue * 30;
+  const energyMonthlyCost = energyMonthlyKwh * tariffValue;
+  const energyAnnualCost = (energyReference.gamingWatts / 1000) * hoursValue * 365 * tariffValue;
 
   function formatPreciseCurrency(value: number) {
     return preciseCurrencyFormatter.format(value);
@@ -389,19 +430,20 @@ export default function Home() {
             <div className="section-header"><div><span className="section-index">03 / 05</span><h2 id="energy-title">Energia em São Paulo</h2><p className="section-lede">Uma RTX 3060 não custa apenas na compra: o consumo contínuo também entra na conta.</p></div><div className="energy-source-note"><span className="live-dot" /> TARIFA EDITÁVEL <b>R$ / kWh</b></div></div>
             <div className="energy-layout">
               <article className="energy-hero-panel">
-                <div className="energy-panel-top"><span className="eyebrow">RTX 3060 12 GB / BANCADA</span><span className="panel-code">SP / 08.26</span></div>
-                <div className="energy-main-reading"><strong>{formatPreciseCurrency(rtx3060CostPerHour)}</strong><span>por hora de gaming</span></div>
-                <div className="energy-reading-rule"><span /> <b>{RTX3060_REFERENCE.gamingWatts} W medidos</b> <span /></div>
-                <p>Estimativa baseada no consumo Gaming da EVGA RTX 3060 XC medido pela TechPowerUp e na tarifa residencial B1 de São Paulo, com a bandeira amarela de agosto de 2026.</p>
+                <div className="energy-panel-top"><div><span className="eyebrow">ESTUDO DE ENERGIA / PLACA</span><strong className="energy-top-title">Escolha a GPU</strong></div><span className="panel-code">SP / 08.26</span></div>
+                <div className="energy-selector-block"><label className="energy-gpu-select"><span>PLACA DE VÍDEO</span><div className="energy-select-wrap"><select value={energyGpuName} onChange={(event) => setEnergyGpuName(event.target.value)} aria-label="Escolher placa GeForce RTX para análise de energia">{rtxModels.map((gpu) => <option key={gpu.name} value={gpu.name}>{gpu.name.replace("GeForce ", "")}</option>)}</select><ChevronDown size={15} /></div></label><small>26 modelos GeForce RTX / séries 30 · 40 · 50</small></div>
+                <div className="energy-main-reading"><strong>{formatPreciseCurrency(energyCostPerHour)}</strong><span>{energyReference.measured ? "por hora de gaming medida" : "por hora no TDP de referência"}</span></div>
+                <div className="energy-reading-rule"><span /> <b>{energyReference.gamingWatts} W {energyReference.measured ? "medidos" : "referência"}</b> <span /></div>
+                <p>{energyReference.measured ? "Estimativa baseada no consumo Gaming da EVGA RTX 3060 XC medido pela TechPowerUp e na tarifa residencial B1 de São Paulo, com a bandeira amarela de agosto de 2026." : `Para ${energyReference.name}, o painel usa o TDP de ${energyReference.tdp} W como referência até que uma medição de consumo Gaming seja cadastrada.`}</p>
                 <div className="energy-controls"><label><span>Tarifa aplicada</span><div className="energy-input-wrap"><span>R$</span><input inputMode="decimal" aria-label="Tarifa de energia em reais por quilowatt-hora" value={energyTariff} onChange={(event) => setEnergyTariff(event.target.value)} /><small>/ kWh</small></div></label><label><span>Horas de gaming / dia</span><div className="energy-input-wrap"><input inputMode="decimal" aria-label="Horas de gaming por dia" value={energyHours} onChange={(event) => setEnergyHours(event.target.value)} /><small>h</small></div></label></div>
                 <div className="energy-source-links"><span>FONTE / MÉTODO</span><a href="https://www.techpowerup.com/gpu-specs/geforce-rtx-3060-12-gb.c3682" target="_blank" rel="noreferrer">TechPowerUp specs ↗</a><a href="https://www.techpowerup.com/review/evga-geforce-rtx-3060-xc/36.html" target="_blank" rel="noreferrer">Power review ↗</a><a href="https://www.enel.com.br/pt-saopaulo/Para_Voce/tarifa-energia-eletrica.html" target="_blank" rel="noreferrer">Enel SP ↗</a></div>
               </article>
               <div className="energy-side-stack">
-                <article className="energy-summary-panel"><div className="panel-heading"><div><span className="eyebrow">CENÁRIO CONFIGURADO</span><h3>{numberFormatter.format(hoursValue)} h / dia</h3></div><span className="panel-code">C / 01</span></div><div className="energy-summary-grid"><div><span>consumo mensal</span><strong>{numberFormatter.format(rtx3060MonthlyKwh)} <small>kWh</small></strong></div><div><span>custo mensal</span><strong>{formatPreciseCurrency(rtx3060MonthlyCost)}</strong></div><div><span>custo anual</span><strong>{formatPreciseCurrency(rtx3060AnnualCost)}</strong></div><div><span>tarifa calculada</span><strong>{formatPreciseCurrency(tariffValue)} <small>/ kWh</small></strong></div></div><p className="energy-disclaimer">Antes de impostos, CIP e eventuais ajustes de faturamento. Altere a tarifa para refletir sua conta real.</p></article>
-                <article className="energy-comparison-panel"><div className="panel-heading"><div><span className="eyebrow">ESTADOS DE CONSUMO</span><h3>A mesma placa, ritmos diferentes</h3></div><span className="panel-code">C / 02</span></div>{[{ label: "Idle", watts: RTX3060_REFERENCE.idleWatts, note: "desktop em repouso" }, { label: "Multi-monitor", watts: RTX3060_REFERENCE.multiMonitorWatts, note: "duas ou mais telas" }, { label: "Video playback", watts: RTX3060_REFERENCE.videoPlaybackWatts, note: "reprodução de vídeo" }, { label: "Gaming", watts: RTX3060_REFERENCE.gamingWatts, note: "carga de jogos" }, { label: "Máximo", watts: RTX3060_REFERENCE.maximumWatts, note: "pico do review" }].map((state) => <div className="energy-bar-row" key={state.label}><div className="energy-bar-meta"><span>{state.label}</span><small>{state.note}</small><b>{state.watts} W</b></div><div className="energy-bar-track"><div className={`energy-bar-fill ${state.label === "Gaming" ? "gaming" : ""}`} style={{ width: `${Math.min((state.watts / 181) * 100, 100)}%` }} /></div></div>)}</article></div>
+                <article className="energy-summary-panel"><div className="panel-heading"><div><span className="eyebrow">CENÁRIO CONFIGURADO</span><h3>{numberFormatter.format(hoursValue)} h / dia</h3></div><span className="panel-code">C / 01</span></div><div className="energy-summary-grid"><div><span>consumo mensal</span><strong>{numberFormatter.format(energyMonthlyKwh)} <small>kWh</small></strong></div><div><span>custo mensal</span><strong>{formatPreciseCurrency(energyMonthlyCost)}</strong></div><div><span>custo anual</span><strong>{formatPreciseCurrency(energyAnnualCost)}</strong></div><div><span>tarifa calculada</span><strong>{formatPreciseCurrency(tariffValue)} <small>/ kWh</small></strong></div></div><p className="energy-disclaimer">Antes de impostos, CIP e eventuais ajustes de faturamento. Altere a tarifa para refletir sua conta real.</p></article>
+                <article className="energy-comparison-panel"><div className="panel-heading"><div><span className="eyebrow">ESTADOS DE CONSUMO</span><h3>{energyReference.measured ? "A mesma placa, ritmos diferentes" : "Referência disponível"}</h3></div><span className="panel-code">C / 02</span></div>{energyStates.map((state) => <div className="energy-bar-row" key={state.label}><div className="energy-bar-meta"><span>{state.label}</span><small>{state.note}</small><b>{state.watts} W</b></div><div className="energy-bar-track"><div className={`energy-bar-fill ${state.label === "Gaming" ? "gaming" : ""}`} style={{ width: `${Math.min((state.watts / energyMaxWatts) * 100, 100)}%` }} /></div></div>)}{!energyReference.measured && <p className="energy-disclaimer">Ainda sem consumo Gaming medido para esta placa. O valor acima usa somente o TDP cadastrado na base.</p>}</article></div>
             </div>
-            <div className="energy-performance-strip"><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{RTX3060_REFERENCE.fps1080p} <small>FPS</small></strong><span>média em 1920×1080</span></div><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{RTX3060_REFERENCE.fps1440p} <small>FPS</small></strong><span>média em 2560×1440</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{numberFormatter.format(RTX3060_REFERENCE.fps1080p / RTX3060_REFERENCE.gamingWatts)} <small>FPS/W</small></strong><span>1080p ÷ 181 W Gaming</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{numberFormatter.format(RTX3060_REFERENCE.fps1440p / RTX3060_REFERENCE.gamingWatts)} <small>FPS/W</small></strong><span>1440p ÷ 181 W Gaming</span></div></div>
-            <p className="energy-footnote">Referência: EVGA RTX 3060 XC, review publicado em 25/02/2021. Os 117 FPS e 86 FPS são médias do conjunto de jogos do review; não representam todos os jogos atuais. A tarifa inicial combina Enel B1 (R$ 0,78938/kWh) com bandeira amarela ANEEL de agosto de 2026 (R$ 0,01885/kWh).</p>
+            <div className="energy-performance-strip"><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{energyReference.fps1080p ?? "—"} <small>FPS</small></strong><span>{energyReference.fps1080p ? "média em 1920×1080" : "benchmark não cadastrado"}</span></div><div><span className="eyebrow">PERFORMANCE AGREGADA / TPU</span><strong>{energyReference.fps1440p ?? "—"} <small>FPS</small></strong><span>{energyReference.fps1440p ? "média em 2560×1440" : "benchmark não cadastrado"}</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{energyReference.fps1080p ? numberFormatter.format(energyReference.fps1080p / energyReference.gamingWatts) : "—"} <small>FPS/W</small></strong><span>{energyReference.fps1080p ? `1080p ÷ ${energyReference.gamingWatts} W Gaming` : "aguarda FPS medido"}</span></div><div><span className="eyebrow">EFICIÊNCIA DE BANCADA</span><strong>{energyReference.fps1440p ? numberFormatter.format(energyReference.fps1440p / energyReference.gamingWatts) : "—"} <small>FPS/W</small></strong><span>{energyReference.fps1440p ? `1440p ÷ ${energyReference.gamingWatts} W Gaming` : "aguarda FPS medido"}</span></div></div>
+            <p className="energy-footnote">{energyReference.measured ? "Referência: EVGA RTX 3060 XC, review publicado em 25/02/2021. Os 117 FPS e 86 FPS são médias do conjunto de jogos do review; não representam todos os jogos atuais." : `Referência de ${energyReference.name}: TDP de ${energyReference.tdp} W da planilha. Ainda não há benchmark TechPowerUp integrado para este modelo no painel.`} A tarifa inicial combina Enel B1 (R$ 0,78938/kWh) com bandeira amarela ANEEL de agosto de 2026 (R$ 0,01885/kWh).</p>
           </section>
 
           <section className="data-section" id="data-table" aria-labelledby="data-title">
